@@ -1,0 +1,16 @@
+//dependencyResolutionManagement {
+//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+//    repositories {
+//        google()
+//        mavenCentral()
+////        jcenter() // Warning: this repository is going to shut down soon
+//        maven {
+//            url "https://maven.aliyun.com/nexus/content/groups/public/"
+//        }
+//    }
+//}
+
+rootProject.name = 'AwesomeProject'
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); 
+applyNativeModulesSettingsGradle(settings)
+include ':app'
