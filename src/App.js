@@ -35,7 +35,6 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-
 const App: () => Node = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -63,12 +62,13 @@ const App: () => Node = () => {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
-          <AliRtcZijinView
+          {/* <AliRtcZijinView
             style={
               styles.localVideo
             }
+            channel={"zijinRtc"}
           >
-          </AliRtcZijinView>
+          </AliRtcZijinView> */}
         </View>
       </ScrollView>
     </SafeAreaView >

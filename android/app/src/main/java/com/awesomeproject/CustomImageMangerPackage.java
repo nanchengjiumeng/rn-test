@@ -12,12 +12,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class CustomImageMangerPackage implements ReactPackage {
-    Number nn;
-
+    MainApplication context;
     public CustomImageMangerPackage(
-            Number n
+            MainApplication context
     ){
-        nn = n;
+        this.context = context;
     }
 
     @NonNull
@@ -31,7 +30,7 @@ public class CustomImageMangerPackage implements ReactPackage {
     public List<ViewManager> createViewManagers(
             ReactApplicationContext reactContext) {
 
-        return Arrays.<ViewManager>asList( new AliRtcZijinViewManager(reactContext, nn));
+        return Arrays.<ViewManager>asList( new AliRtcZijinViewManager(reactContext, context));
     }
 
 }

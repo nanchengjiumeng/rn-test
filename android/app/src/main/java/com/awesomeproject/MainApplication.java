@@ -1,12 +1,20 @@
 package com.awesomeproject;
 
+import android.Manifest;
 import android.app.Application;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.IBinder;
 import android.util.Log;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 //import com.awesomeproject.alirtc.AliRtc;
 import com.facebook.react.PackageList;
@@ -24,6 +32,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class MainApplication extends Application implements ReactApplication {
+
+    private static final String TAG = MainApplication.class.getName();
     private final ReactNativeHost mReactNativeHost =
             new ReactNativeHost(this) {
                 @Override
@@ -38,7 +48,8 @@ public class MainApplication extends Application implements ReactApplication {
                     // Packages that cannot be autolinked yet can be added manually here, for example:
                     // packages.add(new MyReactNativePackage());
 //                    packages.add(new AliRtcZijinPackage());
-                    packages.add(new CustomImageMangerPackage(123));
+                    Log.d(TAG, "成功调用：getPackages");
+                    packages.add(new CustomImageMangerPackage(MainApplication.this));
                     return packages;
                 }
 
@@ -94,11 +105,22 @@ public class MainApplication extends Application implements ReactApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        if (
+                checkSelfPermission(REQUESTED_PERMISSIONS[0], PERMISSION_REQ_ID) &&
+                        checkSelfPermission(REQUESTED_PERMISSIONS[1], PERMISSION_REQ_ID) &&
+                        checkSelfPermission(REQUESTED_PERMISSIONS[2], PERMISSION_REQ_ID)
+        ) {
+            // start service
+            startRtcEngineService();
+        }
+
         ReactInstanceManager mReactInstanceManager = getReactNativeHost().getReactInstanceManager();
         ReactContext reactContext = mReactInstanceManager.getCurrentReactContext();
         registerKeyEventListener();
         SoLoader.init(this, /* native exopackage */ false);
         initializeFlipper(this, mReactInstanceManager);
+
+
 //        aliRtc = new AliRtc(reactContext);
     }
 
@@ -136,5 +158,54 @@ public class MainApplication extends Application implements ReactApplication {
                 e.printStackTrace();
             }
         }
+    }
+
+    private static final String[] REQUESTED_PERMISSIONS = {
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    private static final int PERMISSION_REQ_ID = 0x0002;
+
+    private void startRtcEngineService() {
+        Log.d(TAG, "成功调用：startRtcEngineService");
+        Intent intent = new Intent(this, AliRtcEngineService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent);
+        } else {
+            startService(intent);
+        }
+        AliRtcServiceConnection conn = new AliRtcServiceConnection();
+        this.bindService(intent, conn, BIND_AUTO_CREATE);
+        if(aliRtcEngineService == null){
+            Log.d(TAG, "为空：aliRtcEngineService, " +  Thread.currentThread().getName());
+        }
+    }
+
+
+    public AliRtcEngineService aliRtcEngineService;
+    class AliRtcServiceConnection implements ServiceConnection {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "绑定成功调用：onServiceConnected, " + Thread.currentThread().getName());
+            // 获取Binder
+            AliRtcEngineService.AliRtcBinder binder = (AliRtcEngineService.AliRtcBinder) service;
+            aliRtcEngineService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    }
+
+    private boolean checkSelfPermission(String permission, int requestCode) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getReactNativeHost().getReactInstanceManager().getCurrentReactContext().getCurrentActivity(), REQUESTED_PERMISSIONS, requestCode);
+            return false;
+        }
+
+        return true;
     }
 }
